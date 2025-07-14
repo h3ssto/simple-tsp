@@ -1,3 +1,7 @@
+import * as d3 from 'd3';
+
+const base = import.meta.env.BASE_URL || '/';
+
 document.addEventListener('DOMContentLoaded', function () {
   const width = 1000;
   const height = 1000;
@@ -10,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
     .attr('height', height)
     .style('overflow', 'visible');
 
-  d3.json('/example.json').then(function (cities) {
+  d3.json(base + 'example.json').then(function (cities) {
     // Compute min/max for normalization
     const lats = cities.map(d => d.latitude);
     const lons = cities.map(d => d.longitude);
