@@ -1,0 +1,18 @@
+[
+  { "name": "Berlin", "latitude": 52.520008, "longitude": 13.404954 },
+  { "name": "Potsdam", "latitude": 52.390569, "longitude": 13.064473 },
+  { "name": "Hamburg", "latitude": 53.551086, "longitude": 9.993682 },
+  { "name": "Schwerin", "latitude": 53.635502, "longitude": 11.401249 },
+  { "name": "Bremen", "latitude": 53.079296, "longitude": 8.801694 },
+  { "name": "Hanover", "latitude": 52.375892, "longitude": 9.732010 },
+  { "name": "Magdeburg", "latitude": 52.120533, "longitude": 11.627623 },
+  { "name": "Düsseldorf", "latitude": 51.227741, "longitude": 6.773456 },
+  { "name": "Wiesbaden", "latitude": 50.078218, "longitude": 8.239761 },
+  { "name": "Mainz", "latitude": 49.998254, "longitude": 8.271409 },
+  { "name": "Saarbrücken", "latitude": 49.240157, "longitude": 6.996934 },
+  { "name": "Stuttgart", "latitude": 48.775846, "longitude": 9.182932 },
+  { "name": "Munich", "latitude": 48.137154, "longitude": 11.576124 },
+  { "name": "Dresden", "latitude": 51.050409, "longitude": 13.737262 },
+  { "name": "Erfurt", "latitude": 50.984768, "longitude": 11.029880 },
+  { "name": "Kiel", "latitude": 54.323293, "longitude": 10.122765 }
+] 
