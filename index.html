@@ -4,14 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSP Visualizer</title>
-  <script type="module" crossorigin src="/simple-tsp/assets/index-RrCGDgoW.js"></script>
-  <link rel="stylesheet" crossorigin href="/simple-tsp/assets/index-C1dNqPjV.css">
+  <script type="module" crossorigin src="/simple-tsp/assets/index-CPIW3q_M.js"></script>
+  <link rel="stylesheet" crossorigin href="/simple-tsp/assets/index-Bp5C5Jgw.css">
 </head>
 <body>
   <div id="controls-panel">
-    <button id="btn-random-complete">Complete randomly</button>
-    <button id="btn-nn-complete">Complete with Nearest Neighbour</button>
-    <button id="btn-2opt">Optimize with 2-opt</button>
+    <div class="button-group">
+      <button id="btn-random-complete">Complete randomly</button>
+    </div>
+    <div class="button-group">
+      <button id="btn-nn-complete">Complete with Nearest Neighbour</button>
+      <a href="https://en.wikipedia.org/wiki/Nearest_neighbour_algorithm" target="_blank" class="info-btn" title="Learn more about Nearest Neighbour algorithm">ℹ</a>
+    </div>
+    <div class="button-group">
+      <button id="btn-2opt">Optimize with 2-opt</button>
+      <a href="https://en.wikipedia.org/wiki/2-opt" target="_blank" class="info-btn" title="Learn more about 2-opt algorithm">ℹ</a>
+    </div>
   </div>
   <div id="route-length"></div>
   <div id="tsp-vis"></div>
