@@ -7,6 +7,10 @@
   overflow: visible;
 }
 
+#tsp-vis svg {
+  overflow: visible;
+}
+
 .city-node {
   fill: #c00;
   stroke: #900;
@@ -136,6 +140,13 @@
   z-index: 20;
 }
 
+.button-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 #controls-panel button {
   font-size: 16px;
   font-family: monospace;
@@ -164,6 +175,30 @@
   background: #eee !important;
   color: #aaa !important;
   border: 1px solid #ccc !important;
+}
+
+.info-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  color: #666;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: bold;
+  border: 1px solid #ddd;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  box-shadow: 0 1px 4px #0001;
+}
+
+.info-btn:hover {
+  background: #2196f3;
+  color: #fff;
+  border: 1px solid #1565c0;
+  text-decoration: none;
 }
 
 .autocompleted-edge {

@@ -11,8 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const svg = d3.select('#tsp-vis')
     .append('svg')
     .attr('width', width)
-    .attr('height', height)
-    .style('overflow', 'visible');
+    .attr('height', height);
 
   d3.json(base + 'example.json').then(function (cities) {
     // Compute min/max for normalization
