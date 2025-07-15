@@ -130,6 +130,46 @@
   pointer-events: none;
 }
 
+.reset-btn {
+  position: absolute;
+  top: 12px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #666;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #0001;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reset-btn:hover {
+  background: #f44336;
+  color: #fff;
+  border: 1px solid #d32f2f;
+}
+
+.reset-btn:disabled {
+  background: #eee !important;
+  color: #aaa !important;
+  border: 1px solid #ccc !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+.reset-btn:disabled:hover {
+  background: #eee !important;
+  color: #aaa !important;
+  border: 1px solid #ccc !important;
+}
+
 #controls-panel {
   position: absolute;
   top: 60px;

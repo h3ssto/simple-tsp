@@ -145,10 +145,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateRouteLength() {
       const routeLengthDiv = document.getElementById('route-length');
+      const resetBtn = document.getElementById('btn-reset');
       if (!tspPath.length) {
-        routeLengthDiv.textContent = '';
+        routeLengthDiv.style.display = 'none';
+        resetBtn.disabled = true;
         return;
       }
+      routeLengthDiv.style.display = 'block';
+      resetBtn.disabled = false;
       let total = 0;
       for (let i = 0; i < tspPath.length - 1; i++) {
         const a = project(cities[tspPath[i]]);
@@ -480,6 +484,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('btn-nn-complete').addEventListener('click', animateNearestNeighbourCompletion);
     updateNNButtonVisibility();
     updateStartHint();
+    updateRouteLength();
 
     // 2-opt optimization logic
     async function optimizeWith2Opt() {
@@ -657,6 +662,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     document.getElementById('btn-random-complete').addEventListener('click', completeRandomly);
+
+    // Reset button logic
+    document.getElementById('btn-reset').addEventListener('click', function() {
+      if (asyncActionRunning) {
+        interrupted = true;
+        return;
+      }
+      tspPath = [];
+      lastActionStack = [];
+      interrupted = false;
+      asyncActionRunning = false;
+      hoverGroup.selectAll('*').remove();
+      updatePathVisuals();
+    });
 
     // Remove last city from route on right-click
     document.addEventListener('contextmenu', function(event) {
