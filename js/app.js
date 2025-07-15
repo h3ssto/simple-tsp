@@ -129,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let interrupted = false;
     let asyncActionRunning = false;
     let lastActionStack = [];
+    let resetGeneration = 0;
     function pushState() {
       lastActionStack.push(tspPath.slice());
       // Limit stack size if desired
@@ -418,10 +419,11 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       asyncActionRunning = true;
       interrupted = false;
+      const myGeneration = resetGeneration;
       let visited = new Set(tspPath);
       let currentIdx = tspPath[tspPath.length - 1];
       while (visited.size < cities.length) {
-        if (interrupted) break;
+        if (interrupted || myGeneration !== resetGeneration) return;
         let minDist = Infinity;
         let nextIdx = -1;
         const current = project(cities[currentIdx]);
@@ -435,9 +437,7 @@ document.addEventListener('DOMContentLoaded', function () {
           }
         }
         if (nextIdx === -1) break;
-        // Push state before adding city
         pushState();
-        // Animate edge
         const target = project(cities[nextIdx]);
         pathEdgeGroup.append('line')
           .attr('x1', current.x)
@@ -445,7 +445,6 @@ document.addEventListener('DOMContentLoaded', function () {
           .attr('x2', target.x)
           .attr('y2', target.y)
           .attr('class', 'autocompleted-edge');
-        // Animate node highlight
         svg.selectAll('circle.city-node')
           .filter((d, i) => i === nextIdx)
           .classed('autocompleted-node', true);
@@ -455,10 +454,9 @@ document.addEventListener('DOMContentLoaded', function () {
         updateRouteLength();
         updateCurrentNodeEdges();
         await new Promise(res => setTimeout(res, 500));
-        if (interrupted) break;
+        if (interrupted || myGeneration !== resetGeneration) return;
       }
-      // Close the route if not already closed
-      if (!interrupted && tspPath.length && tspPath[0] !== tspPath[tspPath.length - 1]) {
+      if (!interrupted && myGeneration === resetGeneration && tspPath.length && tspPath[0] !== tspPath[tspPath.length - 1]) {
         pushState();
         const a = project(cities[tspPath[tspPath.length - 1]]);
         const b = project(cities[tspPath[0]]);
@@ -472,8 +470,8 @@ document.addEventListener('DOMContentLoaded', function () {
         updateRouteLength();
         updateCurrentNodeEdges();
         await new Promise(res => setTimeout(res, 500));
+        if (interrupted || myGeneration !== resetGeneration) return;
       }
-      // Clean up: remove animation classes and redraw final visuals
       svg.selectAll('circle.city-node').classed('autocompleted-node', false);
       updatePathVisuals();
       btn.disabled = false;
@@ -497,13 +495,13 @@ document.addEventListener('DOMContentLoaded', function () {
       pushState();
       asyncActionRunning = true;
       interrupted = false;
+      const myGeneration = resetGeneration;
       let improved = true;
       while (improved) {
-        if (interrupted) break;
+        if (interrupted || myGeneration !== resetGeneration) return;
         improved = false;
         let bestImprovement = 0;
         let bestSwap = null;
-        // Find the best 2-opt swap
         for (let i = 0; i < tspPath.length - 2; i++) {
           for (let j = i + 2; j < tspPath.length; j++) {
             const a = project(cities[tspPath[i]]);
@@ -519,10 +517,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
           }
         }
-        // Apply the best swap if it improves the route
         if (bestSwap && bestImprovement > 0.1) {
           const { i, j } = bestSwap;
-          // Highlight edges to be removed (red)
           const a = project(cities[tspPath[i]]);
           const b = project(cities[tspPath[i + 1]]);
           const c = project(cities[tspPath[j]]);
@@ -539,7 +535,6 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr('y1', c.y)
             .attr('x2', d.x)
             .attr('y2', d.y);
-          // Highlight edges to be added (green)
           hoverGroup.append('line')
             .attr('class', 'swap-add')
             .attr('x1', a.x)
@@ -552,17 +547,12 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr('y1', b.y)
             .attr('x2', d.x)
             .attr('y2', d.y);
-          // Wait for highlight animation
           await new Promise(res => setTimeout(res, 1000));
-          if (interrupted) break;
-          // Clear highlights
+          if (interrupted || myGeneration !== resetGeneration) return;
           hoverGroup.selectAll('*').remove();
-          // Reverse the segment from i+1 to j
           const segment = tspPath.slice(i + 1, j + 1).reverse();
           tspPath.splice(i + 1, j - i, ...segment);
-          // Animate the swap
           updatePathVisuals();
-          // Highlight the resulting edges (green to blue transition)
           const newA = project(cities[tspPath[i]]);
           const newB = project(cities[tspPath[i + 1]]);
           const newC = project(cities[tspPath[j]]);
@@ -580,13 +570,11 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr('x2', newD.x)
             .attr('y2', newD.y);
           await new Promise(res => setTimeout(res, 1000));
-          if (interrupted) break;
+          if (interrupted || myGeneration !== resetGeneration) return;
           improved = true;
         }
       }
-      // Keep button disabled after optimization is complete
       btn.disabled = true;
-      // Clean up lingering highlights after 2-opt
       hoverGroup.selectAll('*').remove();
       asyncActionRunning = false;
     }
@@ -603,29 +591,25 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       asyncActionRunning = true;
       interrupted = false;
+      const myGeneration = resetGeneration;
       let visited = new Set(tspPath);
       let currentIdx = tspPath[tspPath.length - 1];
       while (visited.size < cities.length) {
-        if (interrupted) break;
-        // Get all unvisited cities
+        if (interrupted || myGeneration !== resetGeneration) return;
         const unvisited = [];
         for (let i = 0; i < cities.length; i++) {
           if (!visited.has(i)) unvisited.push(i);
         }
-        // Randomly select next city
         const nextIdx = unvisited[Math.floor(Math.random() * unvisited.length)];
         const current = project(cities[currentIdx]);
         const target = project(cities[nextIdx]);
-        // Push state before adding city
         pushState();
-        // Animate edge
         pathEdgeGroup.append('line')
           .attr('x1', current.x)
           .attr('y1', current.y)
           .attr('x2', target.x)
           .attr('y2', target.y)
           .attr('class', 'autocompleted-edge');
-        // Animate node highlight
         svg.selectAll('circle.city-node')
           .filter((d, i) => i === nextIdx)
           .classed('autocompleted-node', true);
@@ -635,10 +619,9 @@ document.addEventListener('DOMContentLoaded', function () {
         updateRouteLength();
         updateCurrentNodeEdges();
         await new Promise(res => setTimeout(res, 250));
-        if (interrupted) break;
+        if (interrupted || myGeneration !== resetGeneration) return;
       }
-      // Close the route if not already closed
-      if (!interrupted && tspPath.length && tspPath[0] !== tspPath[tspPath.length - 1]) {
+      if (!interrupted && myGeneration === resetGeneration && tspPath.length && tspPath[0] !== tspPath[tspPath.length - 1]) {
         pushState();
         const a = project(cities[tspPath[tspPath.length - 1]]);
         const b = project(cities[tspPath[0]]);
@@ -652,8 +635,8 @@ document.addEventListener('DOMContentLoaded', function () {
         updateRouteLength();
         updateCurrentNodeEdges();
         await new Promise(res => setTimeout(res, 250));
+        if (interrupted || myGeneration !== resetGeneration) return;
       }
-      // Clean up: remove animation classes and redraw final visuals
       svg.selectAll('circle.city-node').classed('autocompleted-node', false);
       updatePathVisuals();
       btn.disabled = false;
@@ -667,13 +650,18 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('btn-reset').addEventListener('click', function() {
       if (asyncActionRunning) {
         interrupted = true;
-        return;
+        // Do not return; always reset everything
       }
+      resetGeneration++;
       tspPath = [];
       lastActionStack = [];
       interrupted = false;
       asyncActionRunning = false;
       hoverGroup.selectAll('*').remove();
+      svg.selectAll('circle.city-node')
+        .classed('selected', false)
+        .classed('can-complete', false)
+        .classed('autocompleted-node', false);
       updatePathVisuals();
     });
 
