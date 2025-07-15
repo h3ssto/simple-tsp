@@ -318,4 +318,28 @@
 #start-hint.hide {
   opacity: 0;
   pointer-events: none;
+}
+
+#title-panel {
+  position: absolute;
+  top: 12px;
+  left: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+#title-panel h1 {
+  font-size: 24px;
+  font-family: monospace;
+  color: #222;
+  margin: 0;
+  font-weight: normal;
+  pointer-events: none;
+}
+
+#title-panel .info-btn {
+  pointer-events: auto;
 } 
