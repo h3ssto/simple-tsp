@@ -126,6 +126,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- TSP Path Interactivity ---
     let tspPath = [];
+    // --- Undo/Interrupt support ---
+    let interrupted = false;
+    let asyncActionRunning = false;
+    let lastActionStack = [];
+    function pushState() {
+      lastActionStack.push(tspPath.slice());
+      // Limit stack size if desired
+      if (lastActionStack.length > 100) lastActionStack.shift();
+    }
+    function restoreLastState() {
+      if (lastActionStack.length > 0) {
+        tspPath = lastActionStack.pop();
+        updatePathVisuals();
+        return true;
+      }
+      return false;
+    }
 
     function updateRouteLength() {
       const routeLengthDiv = document.getElementById('route-length');
@@ -152,7 +169,30 @@ document.addEventListener('DOMContentLoaded', function () {
       // Remove all style.display assignments so buttons are always visible
       btn.disabled = !routeStarted || routeComplete;
       btnRandom.disabled = !routeStarted || routeComplete;
-      btn2opt.disabled = !routeComplete;
+      btn2opt.disabled = !routeComplete || !has2OptSwapAvailable();
+    }
+
+    function has2OptSwapAvailable() {
+      if (tspPath.length < 4) return false;
+      
+      // Check if any 2-opt swap improves the route
+      for (let i = 0; i < tspPath.length - 2; i++) {
+        for (let j = i + 2; j < tspPath.length; j++) {
+          const a = project(cities[tspPath[i]]);
+          const b = project(cities[tspPath[i + 1]]);
+          const c = project(cities[tspPath[j]]);
+          const d = project(cities[tspPath[(j + 1) % tspPath.length]]);
+          
+          const currentCost = distance(a, b) + distance(c, d);
+          const newCost = distance(a, c) + distance(b, d);
+          const improvement = currentCost - newCost;
+          
+          if (improvement > 0.1) {
+            return true;
+          }
+        }
+      }
+      return false;
     }
 
     function updateStartHint() {
@@ -373,9 +413,12 @@ document.addEventListener('DOMContentLoaded', function () {
         updateNNButtonVisibility();
         return;
       }
+      asyncActionRunning = true;
+      interrupted = false;
       let visited = new Set(tspPath);
       let currentIdx = tspPath[tspPath.length - 1];
       while (visited.size < cities.length) {
+        if (interrupted) break;
         let minDist = Infinity;
         let nextIdx = -1;
         const current = project(cities[currentIdx]);
@@ -389,6 +432,8 @@ document.addEventListener('DOMContentLoaded', function () {
           }
         }
         if (nextIdx === -1) break;
+        // Push state before adding city
+        pushState();
         // Animate edge
         const target = project(cities[nextIdx]);
         pathEdgeGroup.append('line')
@@ -407,9 +452,11 @@ document.addEventListener('DOMContentLoaded', function () {
         updateRouteLength();
         updateCurrentNodeEdges();
         await new Promise(res => setTimeout(res, 500));
+        if (interrupted) break;
       }
       // Close the route if not already closed
-      if (tspPath.length && tspPath[0] !== tspPath[tspPath.length - 1]) {
+      if (!interrupted && tspPath.length && tspPath[0] !== tspPath[tspPath.length - 1]) {
+        pushState();
         const a = project(cities[tspPath[tspPath.length - 1]]);
         const b = project(cities[tspPath[0]]);
         pathEdgeGroup.append('line')
@@ -428,6 +475,7 @@ document.addEventListener('DOMContentLoaded', function () {
       updatePathVisuals();
       btn.disabled = false;
       updateNNButtonVisibility();
+      asyncActionRunning = false;
     }
 
     document.getElementById('btn-nn-complete').addEventListener('click', animateNearestNeighbourCompletion);
@@ -442,13 +490,15 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = false;
         return;
       }
-      
+      pushState();
+      asyncActionRunning = true;
+      interrupted = false;
       let improved = true;
       while (improved) {
+        if (interrupted) break;
         improved = false;
         let bestImprovement = 0;
         let bestSwap = null;
-        
         // Find the best 2-opt swap
         for (let i = 0; i < tspPath.length - 2; i++) {
           for (let j = i + 2; j < tspPath.length; j++) {
@@ -456,28 +506,23 @@ document.addEventListener('DOMContentLoaded', function () {
             const b = project(cities[tspPath[i + 1]]);
             const c = project(cities[tspPath[j]]);
             const d = project(cities[tspPath[(j + 1) % tspPath.length]]);
-            
             const currentCost = distance(a, b) + distance(c, d);
             const newCost = distance(a, c) + distance(b, d);
             const improvement = currentCost - newCost;
-            
             if (improvement > bestImprovement) {
               bestImprovement = improvement;
               bestSwap = { i, j };
             }
           }
         }
-        
         // Apply the best swap if it improves the route
         if (bestSwap && bestImprovement > 0.1) {
           const { i, j } = bestSwap;
-          
           // Highlight edges to be removed (red)
           const a = project(cities[tspPath[i]]);
           const b = project(cities[tspPath[i + 1]]);
           const c = project(cities[tspPath[j]]);
           const d = project(cities[tspPath[(j + 1) % tspPath.length]]);
-          
           hoverGroup.append('line')
             .attr('class', 'swap-remove')
             .attr('x1', a.x)
@@ -490,7 +535,6 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr('y1', c.y)
             .attr('x2', d.x)
             .attr('y2', d.y);
-          
           // Highlight edges to be added (green)
           hoverGroup.append('line')
             .attr('class', 'swap-add')
@@ -504,26 +548,21 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr('y1', b.y)
             .attr('x2', d.x)
             .attr('y2', d.y);
-          
           // Wait for highlight animation
           await new Promise(res => setTimeout(res, 1000));
-          
+          if (interrupted) break;
           // Clear highlights
           hoverGroup.selectAll('*').remove();
-          
           // Reverse the segment from i+1 to j
           const segment = tspPath.slice(i + 1, j + 1).reverse();
           tspPath.splice(i + 1, j - i, ...segment);
-          
           // Animate the swap
           updatePathVisuals();
-          
           // Highlight the resulting edges (green to blue transition)
           const newA = project(cities[tspPath[i]]);
           const newB = project(cities[tspPath[i + 1]]);
           const newC = project(cities[tspPath[j]]);
           const newD = project(cities[tspPath[(j + 1) % tspPath.length]]);
-          
           hoverGroup.append('line')
             .attr('class', 'swap-result')
             .attr('x1', newA.x)
@@ -536,16 +575,16 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr('y1', newC.y)
             .attr('x2', newD.x)
             .attr('y2', newD.y);
-          
           await new Promise(res => setTimeout(res, 1000));
+          if (interrupted) break;
           improved = true;
         }
       }
-      
       // Keep button disabled after optimization is complete
       btn.disabled = true;
       // Clean up lingering highlights after 2-opt
       hoverGroup.selectAll('*').remove();
+      asyncActionRunning = false;
     }
 
     document.getElementById('btn-2opt').addEventListener('click', optimizeWith2Opt);
@@ -558,9 +597,12 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = false;
         return;
       }
+      asyncActionRunning = true;
+      interrupted = false;
       let visited = new Set(tspPath);
       let currentIdx = tspPath[tspPath.length - 1];
       while (visited.size < cities.length) {
+        if (interrupted) break;
         // Get all unvisited cities
         const unvisited = [];
         for (let i = 0; i < cities.length; i++) {
@@ -570,7 +612,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const nextIdx = unvisited[Math.floor(Math.random() * unvisited.length)];
         const current = project(cities[currentIdx]);
         const target = project(cities[nextIdx]);
-        
+        // Push state before adding city
+        pushState();
         // Animate edge
         pathEdgeGroup.append('line')
           .attr('x1', current.x)
@@ -588,9 +631,11 @@ document.addEventListener('DOMContentLoaded', function () {
         updateRouteLength();
         updateCurrentNodeEdges();
         await new Promise(res => setTimeout(res, 250));
+        if (interrupted) break;
       }
       // Close the route if not already closed
-      if (tspPath.length && tspPath[0] !== tspPath[tspPath.length - 1]) {
+      if (!interrupted && tspPath.length && tspPath[0] !== tspPath[tspPath.length - 1]) {
+        pushState();
         const a = project(cities[tspPath[tspPath.length - 1]]);
         const b = project(cities[tspPath[0]]);
         pathEdgeGroup.append('line')
@@ -608,6 +653,7 @@ document.addEventListener('DOMContentLoaded', function () {
       svg.selectAll('circle.city-node').classed('autocompleted-node', false);
       updatePathVisuals();
       btn.disabled = false;
+      asyncActionRunning = false;
     }
 
     document.getElementById('btn-random-complete').addEventListener('click', completeRandomly);
@@ -615,6 +661,13 @@ document.addEventListener('DOMContentLoaded', function () {
     // Remove last city from route on right-click
     document.addEventListener('contextmenu', function(event) {
       event.preventDefault();
+      if (asyncActionRunning) {
+        interrupted = true;
+        return;
+      }
+      if (restoreLastState()) {
+        return;
+      }
       if (tspPath.length > 0) {
         tspPath.pop();
         updatePathVisuals();
