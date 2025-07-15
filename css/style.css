@@ -15,6 +15,7 @@
   fill: #c00;
   stroke: #900;
   stroke-width: 1.5px;
+  cursor: pointer;
 }
 
 .city-label {
@@ -42,13 +43,13 @@
 }
 
 .path-edge {
-  stroke: #2196f3;
+  stroke: #1565c0;
   stroke-width: 3px;
   opacity: 1;
 }
 
 .city-node.selected {
-  stroke: #2196f3;
+  stroke: #1565c0;
   stroke-width: 3px;
 }
 
@@ -76,12 +77,12 @@
 
 .city-node:hover {
   stroke-width: 4px;
-  stroke: #ff6b35;
+  stroke: #64b5f6;
   transition: stroke-width 0.2s ease, stroke 0.2s ease;
 }
 
 .hover-edge {
-  stroke: #ff6b35;
+  stroke: #64b5f6;
   stroke-width: 4px;
   opacity: 1;
   transition: stroke 0.2s ease, stroke-width 0.2s ease;
@@ -90,7 +91,7 @@
 .hover-label {
   font-size: 14px;
   font-family: monospace;
-  fill: #ff6b35;
+  fill: #64b5f6;
   font-weight: bold;
   text-anchor: middle;
   dominant-baseline: middle;
@@ -100,8 +101,7 @@
 
 .hover-label-bg {
   fill: #fff;
-  stroke: #ff6b35;
-  stroke-width: 1px;
+  stroke: none;
   rx: 4px;
   ry: 4px;
   transition: stroke 0.2s ease;
@@ -223,14 +223,14 @@
 }
 
 .swap-remove {
-  stroke: #f44336;
+  stroke: #ff1744;
   stroke-width: 4px;
   opacity: 0.8;
   animation: pulseRed 0.5s ease-in-out;
 }
 
 .swap-add {
-  stroke: #4caf50;
+  stroke: #00e676;
   stroke-width: 4px;
   stroke-dasharray: 8,4;
   opacity: 0.8;
@@ -238,7 +238,7 @@
 }
 
 .swap-result {
-  stroke: #4caf50;
+  stroke: #00e676;
   stroke-width: 4px;
   opacity: 0.8;
 }

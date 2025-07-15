@@ -652,6 +652,7 @@ document.addEventListener('DOMContentLoaded', function () {
       svg.selectAll('circle.city-node').classed('autocompleted-node', false);
       updatePathVisuals();
       btn.disabled = false;
+      updateNNButtonVisibility();
       asyncActionRunning = false;
     }
 
